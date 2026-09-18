@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApexGear - Premium Athletic Footwear & Apparel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Notification Bar -->
+    <div class="top-bar">
+        ⚡ Free express shipping on all running shoes & orders over $75!
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand-logo" onclick="app.showView('home')">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">APEX<strong>GEAR</strong></span>
+            </div>
+
+            <!-- Search Form with Intentional A11y Test Case: Unlabeled Search Button -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search shoes, gear, apparel..." onkeydown="if(event.key==='Enter') app.handleSearch()">
+                <!-- Intentionally unlabeled icon button for a11y testing -->
+                <button class="btn-search-icon" id="searchBtn" onclick="app.handleSearch()">🔍</button>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="nav-actions">
+                <button class="nav-link-btn" onclick="app.showView('home')">Home</button>
+                <button class="nav-link-btn" onclick="app.showCategory('running')">Running</button>
+                <button class="nav-link-btn" onclick="app.showCategory('trail')">Trail</button>
+                <button class="cart-btn" id="cartToggleBtn" onclick="app.toggleCart()">
+                    🛒 Cart <span class="cart-badge" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content">
+        <!-- View: Home -->
+        <section id="homeView" class="view-section active">
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <span class="hero-tag">NEW COLLECTION 2026</span>
+                    <h1 class="hero-title">ENGINEERED FOR UNSTOPPABLE SPEED</h1>
+                    <p class="hero-subtitle">Discover the all-new Velocity Blue Pro series with hyper-responsive nitrogen foam cushioning.</p>
+                    <div class="hero-cta-group">
+                        <button class="btn-primary" onclick="app.searchQuery('blue running shoes')">Explore Blue Running Shoes</button>
+                        <button class="btn-secondary" onclick="app.showCategory('running')">View All Running</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title-wrap">
+                <h2>Featured Athletic Footwear</h2>
+                <p>Top performance running shoes tested by elite athletes</p>
+            </div>
+
+            <div class="products-grid" id="featuredGrid">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- View: Search Results -->
+        <section id="searchView" class="view-section">
+            <div class="results-header">
+                <h2>Search Results for: <span id="searchKeyword" class="highlight-text">"blue running shoes"</span></h2>
+                <span id="resultsCount" class="results-count">3 items found</span>
+            </div>
+
+            <div class="filter-chips">
+                <button class="chip active" onclick="app.filterCategory('all')">All Results</button>
+                <button class="chip" onclick="app.filterCategory('running')">Road Running</button>
+                <button class="chip" onclick="app.filterCategory('trail')">Trail Running</button>
+                <button class="chip" onclick="app.filterCategory('blue')">Blue Colorway</button>
+            </div>
+
+            <div class="products-grid" id="searchResultsGrid">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- View: Product Details -->
+        <section id="productDetailView" class="view-section">
+            <div class="product-detail-container">
+                <div class="product-gallery">
+                    <div class="detail-image-box" id="detailImage">
+                        <!-- Image render -->
+                    </div>
+                </div>
+                <div class="product-info-panel">
+                    <span class="detail-category" id="detailCategory">Road Running</span>
+                    <h1 class="detail-title" id="detailTitle">Apex Velocity Blue Running Shoe</h1>
+                    <div class="detail-price-rating">
+                        <span class="detail-price" id="detailPrice">$139.99</span>
+                        <span class="detail-rating">★★★★★ <span>(4.9 / 5 &bull; 128 reviews)</span></span>
+                    </div>
+                    <p class="detail-desc" id="detailDesc">
+                        Crafted with high-breathability mesh, reinforced blue kinetic weave, and responsive shock-absorption sole. Built for long-distance marathoners and daily pavement pounding.
+                    </p>
+
+                    <!-- Size Selection -->
+                    <div class="option-group">
+                        <label class="option-label">Select Size (US Men):</label>
+                        <div class="size-chips" id="sizeSelector">
+                            <button class="size-chip" onclick="app.selectSize(this)">8.0</button>
+                            <button class="size-chip active" onclick="app.selectSize(this)">9.0</button>
+                            <button class="size-chip" onclick="app.selectSize(this)">9.5</button>
+                            <button class="size-chip" onclick="app.selectSize(this)">10.0</button>
+                            <button class="size-chip" onclick="app.selectSize(this)">11.0</button>
+                        </div>
+                    </div>
+
+                    <!-- Intentional A11y flaw: input without label -->
+                    <div class="option-group">
+                        <span style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 4px; display: block;">Delivery Instructions:</span>
+                        <input type="text" id="unlabeledDeliveryNotes" class="custom-input" placeholder="e.g. Leave at front door">
+                    </div>
+
+                    <!-- Add to Cart CTA -->
+                    <div class="action-btn-row">
+                        <button class="btn-primary btn-large" id="addToCartBtn" onclick="app.addToCartFromDetail()">
+                            🛒 Add to Cart
+                        </button>
+                        <button class="btn-secondary btn-large" onclick="app.showView('home')">
+                            Continue Browsing
+                        </button>
+                    </div>
+
+                    <div class="product-perks">
+                        <div class="perk-item">✓ 30-Day Free Trial & Returns</div>
+                        <div class="perk-item">✓ Guaranteed Authentic ApexGear</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Checkout Confirmation -->
+        <section id="checkoutView" class="view-section">
+            <div class="checkout-card">
+                <h2>Checkout & Order Summary</h2>
+                <div id="checkoutSummaryList" class="checkout-items"></div>
+                <div class="total-row">
+                    <span>Total Amount:</span>
+                    <span id="checkoutTotalAmount" class="total-val">$0.00</span>
+                </div>
+                <div class="form-group">
+                    <label for="custName">Full Name</label>
+                    <input type="text" id="custName" placeholder="Alex Morgan">
+                </div>
+                <div class="form-group">
+                    <label for="custAddress">Shipping Address</label>
+                    <input type="text" id="custAddress" placeholder="123 Marathon Way, Boston MA">
+                </div>
+                <button class="btn-primary btn-large" style="width: 100%; margin-top: 15px;" onclick="app.completeOrder()">
+                    Confirm & Place Order
+                </button>
+            </div>
+        </section>
+
+        <!-- View: Order Success -->
+        <section id="successView" class="view-section">
+            <div class="success-card">
+                <div class="success-icon">🎉</div>
+                <h1>Order Confirmed!</h1>
+                <p>Your order has been successfully placed. A confirmation email has been sent.</p>
+                <div class="badge-status-completed" style="padding: 10px; border-radius: 8px; margin: 20px auto; max-width: 300px;">
+                    Order Reference: #APX-982341
+                </div>
+                <button class="btn-primary" onclick="app.showView('home')">Return to Store</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Slide-over Cart Drawer -->
+    <div class="cart-drawer-overlay" id="cartOverlay" onclick="app.toggleCart(false)"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="drawer-header">
+            <h3>Your Shopping Cart (<span id="drawerCartCount">0</span>)</h3>
+            <button class="close-drawer-btn" onclick="app.toggleCart(false)">✕</button>
+        </div>
+        <div class="drawer-body" id="cartItemsContainer">
+            <!-- Items injected via JS -->
+        </div>
+        <div class="drawer-footer">
+            <div class="cart-subtotal-row">
+                <span>Subtotal:</span>
+                <span id="cartSubtotal" class="cart-subtotal-val">$0.00</span>
+            </div>
+            <button class="btn-primary btn-large" style="width: 100%;" id="checkoutDrawerBtn" onclick="app.proceedToCheckout()">
+                Proceed to Checkout →
+            </button>
+        </div>
+    </aside>
+
+    <!-- Promotional Modal Banner (Intentional UX Friction Test Case) -->
+    <div class="modal-overlay" id="promoModal">
+        <div class="modal-box">
+            <div class="modal-tag">EXCLUSIVE VIP OFFER</div>
+            <h2 class="modal-title">Get 20% Off Your Running Gear!</h2>
+            <p class="modal-text">Join Apex Club today for early access to limited edition color drops and runner rewards.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="dismissPromoBtn" onclick="app.closePromo()">No Thanks, Dismiss</button>
+                <button class="btn-primary" onclick="app.closePromo()">Claim 20% Coupon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast-notification"></div>
+
+    <script src="store.js"></script>
+</body>
+</html>
