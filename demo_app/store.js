@@ -1,7 +1,3 @@
-/**
- * ApexGear Demo E-Commerce Store Frontend Logic
- */
-
 const PRODUCTS = [
     {
         id: "prod-1",
@@ -81,7 +77,7 @@ class StoreApp {
     createProductCard(product) {
         // Intentional visual layout shift simulation based on product rating
         const layoutDrift = product.rating === 4.6 ? 'padding-top: 15px;' : '';
-        
+
         return `
         <div class="product-card" id="card-${product.id}" style="${layoutDrift}">
             <div class="product-card-img" onclick="app.viewProduct('${product.id}')">
@@ -112,10 +108,10 @@ class StoreApp {
     searchQuery(query) {
         const q = query.toLowerCase();
         document.getElementById('searchKeyword').innerText = `"${query}"`;
-        
-        const filtered = PRODUCTS.filter(p => 
-            p.title.toLowerCase().includes(q) || 
-            p.category.toLowerCase().includes(q) || 
+
+        const filtered = PRODUCTS.filter(p =>
+            p.title.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
             p.color.toLowerCase().includes(q) ||
             p.desc.toLowerCase().includes(q) ||
             (q.includes("running") && p.category === "running") ||
@@ -125,9 +121,9 @@ class StoreApp {
 
         const grid = document.getElementById('searchResultsGrid');
         const countEl = document.getElementById('resultsCount');
-        
+
         countEl.innerText = `${filtered.length} item${filtered.length === 1 ? '' : 's'} found`;
-        grid.innerHTML = filtered.length > 0 
+        grid.innerHTML = filtered.length > 0
             ? filtered.map(p => this.createProductCard(p)).join('')
             : `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">No matching products found.</div>`;
 
@@ -271,10 +267,10 @@ class StoreApp {
         this.cart = [];
         this.updateCartUI();
         this.showView('success');
-        
+
         // Intentional Console Error to trigger ObservabilityEngine
         console.error("PaymentGatewayService: Unhandled exception during payment sync. Transaction ID undefined.");
-        
+
         // Intentional Network Failure simulation (unhandled promise rejection)
         fetch('/api/mock/analytics/track_purchase', { method: 'POST' })
             .then(res => res.json())

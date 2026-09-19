@@ -55,7 +55,7 @@ class PIIRedactionEngine:
         Draw black rectangles over sensitive elements in the screenshot.
         Returns True if masking was applied.
         """
-        if not screenshot_path.exists():
+        if not screenshot_path or not screenshot_path.exists():
             return False
 
         sensitive_elements = [el for el in elements if self.is_sensitive_element(el)]

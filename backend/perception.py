@@ -281,7 +281,7 @@ class PerceptionEngine:
             step_number=step_number,
             url=raw_data.get("url", ""),
             title=raw_data.get("title", ""),
-            screenshot=str(screenshot_path.name),
+            screenshot=str(screenshot_path.name) if screenshot_path else None,
             elements=ui_elements,
             a11y_summary=a11y_summary,
             dom_summary=dom_summary,
