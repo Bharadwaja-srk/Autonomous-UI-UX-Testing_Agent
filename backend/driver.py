@@ -1,6 +1,7 @@
 """
 Playwright Browser Driver for Autonomous UI/UX & Accessibility Testing.
 Executes actions against target web applications purely out-of-band as a black box.
+Supports multi-device viewport configurations.
 """
 
 import asyncio
@@ -9,13 +10,16 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict, Any
 from playwright.async_api import async_playwright, Playwright, Browser, BrowserContext, Page, TimeoutError as PlaywrightTimeoutError
 
+from backend.schemas import DeviceProfile
+
 logger = logging.getLogger("autonomous_tester.driver")
 
 
 class BrowserDriver:
-    def __init__(self, headless: bool = False, slow_mo: int = 200):
+    def __init__(self, headless: bool = False, slow_mo: int = 200, device_profile: Optional[DeviceProfile] = None):
         self.headless = headless
         self.slow_mo = slow_mo
+        self.device_profile = device_profile or DeviceProfile()
         self._playwright: Optional[Playwright] = None
         self._browser: Optional[Browser] = None
         self._context: Optional[BrowserContext] = None
@@ -25,8 +29,12 @@ class BrowserDriver:
     def page(self) -> Optional[Page]:
         return self._page
 
+    @property
+    def context(self) -> Optional[BrowserContext]:
+        return self._context
+
     async def start(self) -> None:
-        """Initialize the browser instance."""
+        """Initialize the browser instance with device profile configuration."""
         if self._playwright is None:
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(
@@ -38,14 +46,17 @@ class BrowserDriver:
                     "--disable-infobars",
                 ]
             )
+            dp = self.device_profile
             self._context = await self._browser.new_context(
-                viewport={"width": 1280, "height": 800},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                device_scale_factor=1,
+                viewport={"width": dp.viewport_width, "height": dp.viewport_height},
+                user_agent=dp.user_agent,
+                device_scale_factor=dp.device_scale_factor,
+                is_mobile=dp.is_mobile,
+                has_touch=dp.has_touch,
             )
             self._page = await self._context.new_page()
             self._page.set_default_timeout(10000)
-            logger.info("Browser driver started successfully.")
+            logger.info(f"Browser driver started with device profile: {dp.name} ({dp.viewport_width}x{dp.viewport_height})")
 
     async def navigate(self, url: str) -> Tuple[bool, Optional[str]]:
         """Navigate to a target URL."""
@@ -99,6 +110,36 @@ class BrowserDriver:
             return False, f"Timeout waiting to click: {selector or coordinates}"
         except Exception as e:
             return False, f"Click failed on {selector or coordinates}: {str(e)}"
+
+    async def click_by_text(self, text: str, exact: bool = False, timeout: int = 5000) -> Tuple[bool, Optional[str]]:
+        """Click an element by its visible text content."""
+        if not self._page:
+            return False, "Browser page not initialized"
+        try:
+            logger.info(f"Clicking element by text: '{text}'")
+            loc = self._page.get_by_text(text, exact=exact).first
+            await loc.wait_for(state="visible", timeout=timeout)
+            await loc.scroll_into_view_if_needed(timeout=2000)
+            await loc.click(timeout=timeout)
+            await asyncio.sleep(0.6)
+            return True, None
+        except Exception as e:
+            return False, f"Click by text failed for '{text}': {str(e)}"
+
+    async def click_by_role(self, role: str, name: Optional[str] = None, timeout: int = 5000) -> Tuple[bool, Optional[str]]:
+        """Click an element by its ARIA role and optional accessible name."""
+        if not self._page:
+            return False, "Browser page not initialized"
+        try:
+            logger.info(f"Clicking element by role: {role}, name: {name}")
+            loc = self._page.get_by_role(role, name=name).first
+            await loc.wait_for(state="visible", timeout=timeout)
+            await loc.scroll_into_view_if_needed(timeout=2000)
+            await loc.click(timeout=timeout)
+            await asyncio.sleep(0.6)
+            return True, None
+        except Exception as e:
+            return False, f"Click by role failed for {role}/{name}: {str(e)}"
 
     async def type(self, selector: str, text: str, clear_first: bool = True, press_enter: bool = False, timeout: int = 5000) -> Tuple[bool, Optional[str]]:
         """Type text into an input element."""
@@ -172,6 +213,24 @@ class BrowserDriver:
         if not self._page:
             return None
         return await self._page.evaluate(script, arg)
+
+    async def get_page_metrics(self) -> Dict[str, Any]:
+        """Get page performance timing metrics."""
+        if not self._page:
+            return {}
+        try:
+            return await self._page.evaluate("""
+                () => {
+                    const timing = performance.timing;
+                    return {
+                        domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
+                        loadComplete: timing.loadEventEnd - timing.navigationStart,
+                        domInteractive: timing.domInteractive - timing.navigationStart,
+                    };
+                }
+            """)
+        except Exception:
+            return {}
 
     async def close(self) -> None:
         """Safely close page, context, and browser."""

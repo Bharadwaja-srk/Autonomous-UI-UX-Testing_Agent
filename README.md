@@ -1,29 +1,33 @@
-# Autonomous UI/UX & Accessibility Testing Agent
+# Enterprise Autonomous UI/UX & Accessibility Testing Platform
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg)](https://fastapi.tiangolo.com/)
-[![Playwright](https://img.shields.io/badge/Playwright-1.42%2B-2EAD33.svg)](https://playwright.dev/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Multimodal%20AI-8E75FF.svg)](https://ai.google.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+An industry-grade, agentic black-box testing framework powered by **Playwright** and **Google Gemini (Multimodal)**. 
+Give it a natural language goal and a URL, and it will autonomously explore, interact, validate, and report on your application.
 
-An agentic, framework-agnostic **Autonomous Black-Box UI/UX & Accessibility Testing Engine**. Driven by **Google Gemini** multimodal vision and **Playwright** browser automation, this framework accepts natural-language user goals (e.g., *"Search for blue running shoes and add one to the cart"*), autonomously navigates target web applications, detects usability friction points and accessibility violations, and compiles executive-ready visual audit reports.
+## 🌟 Key Capabilities
+
+1. **AI Test Planner**: Dynamically generates test cases (positive, negative, edge cases) based on a high-level intent.
+2. **Autonomous Execution Engine**: Uses Gemini Multimodal AI to understand the screen and decide the next optimal interaction.
+3. **Deep Accessibility Audit (axe-core)**: Autonomously scans every page visited for WCAG compliance.
+4. **Visual Regression Engine**: Captures pixel-perfect screenshots and highlights unexpected layout drifts between runs.
+5. **Self-Healing & Recovery**: Detects when an element is missing, an action fails, or a popup appears, and dynamically adjusts its strategy to recover.
+6. **Network & Console Observability**: Hooks into the browser's lower levels to detect silent JS exceptions and failed API calls.
+7. **Automated Bug Reporting**: Correlates errors, generates reproduction steps, suggests fixes, and files tickets directly to **GitHub Issues**.
+8. **Session Replay (Time Travel)**: Records a comprehensive JSON log of every DOM state, screenshot, and action for debugging.
+
+## 🌟 Key Features
+
+- **Multimodal AI Reasoning**: Leverages Google Gemini (`gemini-3.7-flash` / `gemini-2.5-flash`) to visually analyze page screenshots alongside structured DOM interactive element snapshots to decide optimal next actions.
+- **Hybrid Dual Engine**: Features a smart fallback heuristic decision engine that allows reliable offline operation and deterministic execution even without an active API key.
+- **Black-Box Browser Automation**: Built on Playwright to execute out-of-band mouse clicks, text typing, keyboard interaction, scrolling, and navigation without modifying or invading target codebase source code.
+- **Automated Accessibility (A11y) Audit**: Real-time detection of unlabeled buttons, missing input labels, icon-only controls, and keyboard accessibility flaws during navigation.
+- **Quantitative UX Friction Scoring**: Transparent heuristic model evaluating user effort (0–100 score) penalizing excess steps, action failures, repeated clicks, cyclic navigation loops, and backtracks.
+- **Standalone Executive HTML Reports**: Renders self-contained dark-mode audit reports complete with step-by-step reasoning timelines, screenshot thumbnails, severity ratings, and actionable UI recommendations.
+- **Live Interactive Dashboard**: Web UI for monitoring real-time agent perception feeds, action logs, screenshot previews, intent templates, and run history.
+- **Built-in Demo E-Commerce Store**: Includes an integrated mock store (`/demo`) for instant out-of-the-box testing and verification.
 
 ---
 
-##  Key Features
-
-- ** Multimodal AI Reasoning**: Leverages Google Gemini (`gemini-3.7-flash` / `gemini-2.5-flash`) to visually analyze page screenshots alongside structured DOM interactive element snapshots to decide optimal next actions.
-- ** Hybrid Dual Engine**: Features a smart fallback heuristic decision engine that allows reliable offline operation and deterministic execution even without an active API key.
-- ** Black-Box Browser Automation**: Built on Playwright to execute out-of-band mouse clicks, text typing, keyboard interaction, scrolling, and navigation without modifying or invading target codebase source code.
-- ** Automated Accessibility (A11y) Audit**: Real-time detection of unlabeled buttons, missing input labels, icon-only controls, and keyboard accessibility flaws during navigation.
-- ** Quantitative UX Friction Scoring**: Transparent heuristic model evaluating user effort (0–100 score) penalizing excess steps, action failures, repeated clicks, cyclic navigation loops, and backtracks.
-- ** Standalone Executive HTML Reports**: Renders self-contained dark-mode audit reports complete with step-by-step reasoning timelines, screenshot thumbnails, severity ratings, and actionable UI recommendations.
-- ** Live Interactive Dashboard**: Web UI for monitoring real-time agent perception feeds, action logs, screenshot previews, intent templates, and run history.
-- ** Built-in Demo E-Commerce Store**: Includes an integrated mock store (`/demo`) for instant out-of-the-box testing and verification.
-
----
-
-##  System Architecture
+## 🏗 System Architecture
 
 ```mermaid
 flowchart TD
@@ -44,7 +48,7 @@ flowchart TD
 
 ---
 
-##  Repository Structure
+## 📁 Repository Structure
 
 ```
 Autonomous-UI-UX-Testing-Agent/
@@ -94,149 +98,62 @@ Autonomous-UI-UX-Testing-Agent/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Bharadwaja-srk/Autonomous-UI-UX-Testing_Agent.git
+git clone <your-repo>
 cd Autonomous-UI-UX-Testing-Agent
+
+# Install dependencies
+python -m pip install -r requirements.txt
+
+# Install Playwright browsers
+playwright install chromium --with-deps
 ```
 
-### 2. Set Up Virtual Environment & Install Dependencies
+### 2. Configuration
 
-```bash
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-# Windows (PowerShell):
-.venv\Scripts\Activate.ps1
-# Linux / macOS:
-source .venv/bin/activate
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Install Playwright browser binaries
-playwright install chromium
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file in the root directory by copying `.env.example`:
-
+Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
+Add your `GEMINI_API_KEY` inside `.env`.
 
-Edit `.env` to configure your settings:
-
-```env
-# Gemini API Key (Required for AI visual reasoning)
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Recommended model: gemini-3.7-flash or gemini-2.5-flash
-GEMINI_MODEL=gemini-3.7-flash
-
-# Execution Settings
-BROWSER_HEADLESS=false
-MAX_STEPS=30
-LOOP_THRESHOLD=3
-ACTION_DELAY_MS=600
-
-# Server Settings
-HOST=127.0.0.1
-PORT=8000
-```
-
-> **Note**: If `GEMINI_API_KEY` is omitted, the framework automatically uses the internal **Smart Heuristic Engine**, allowing full testing capability without API credentials.
-
----
-
-## 💻 Running the Application
-
-Start the FastAPI application server:
+### 3. Run the Dashboard
 
 ```bash
-python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+python -m backend.main
 ```
+Open `http://127.0.0.1:8000` in your browser.
 
-Once running, open your browser to access:
+### 4. CI/CD Command Line Interface
 
-- **Web Dashboard**: [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/)
-- **Demo E-Commerce Store**: [`http://127.0.0.1:8000/demo/`](http://127.0.0.1:8000/demo/)
-- **API Documentation**: [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
-
----
-
-## 🎮 How to Use the Dashboard
-
-1. Open [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/) in your browser.
-2. Enter the **Target Web URL** (e.g. `http://127.0.0.1:8000/demo/`).
-3. Type a **Natural Language Goal** or select a **Quick Intent Template**:
-   - 👟 *"Search for blue running shoes and add one to the cart."*
-   - 🥾 *"Explore trail category, select Apex Trail Pro, and proceed to checkout."*
-   - 🏋️ *"Find black gym trainer shoes and verify size selection."*
-4. Click **LAUNCH AUTONOMOUS TEST**.
-5. Watch real-time perception screenshots, reasoning step feeds, and live execution status.
-6. Upon run completion, review executive metrics, UX friction breakdown, accessibility findings, and click **View Full HTML Report**.
-
----
-
-## 📐 Friction & Accessibility Scoring Model
-
-The **UX Friction Score** is an automated metric (scale 0–100) quantifying user resistance and cognitive effort:
-
-$$\text{Friction Score} = \min\Big(100,\, (3 \times E) + (12 \times F) + (5 \times R) + (8 \times B) + (25 \times L) + (20 \times D) + (4 \times A) + P\Big)$$
-
-| Metric Factor | Deduction Weight | Description |
-| :--- | :--- | :--- |
-| **Excess Steps ($E$)** | +3 pts / step | Steps taken beyond the optimal direct path baseline (4 steps) |
-| **Failed Interactions ($F$)** | +12 pts / failure | Unresponsive button clicks or failed input operations |
-| **Repeated Clicks ($R$)** | +5 pts / repeat | Consecutive clicks on the same element (missing loading UI) |
-| **Backtracks ($B$)** | +8 pts / backtrack | Browser back navigations needed to correct path |
-| **Navigation Loops ($L$)** | +25 pts / loop | Cyclic state re-visitation without goal progression |
-| **Dead Ends ($D$)** | +20 pts / dead-end | Terminal state without forward navigation options |
-| **A11y Violations ($A$)** | +4 to +15 pts | Missing labels, low contrast, or keyboard navigation blocks |
-| **Uncompleted Penalty ($P$)** | +25 pts penalty | Applied when max steps limit is reached or task fails |
-
----
-
-## 🧪 Running Automated Tests
-
-Run the complete backend test suite using `pytest`:
-
+You can run the engine headlessly in GitHub Actions or any CI/CD pipeline:
 ```bash
-python -m pytest
+python -m backend.cli "Add blue running shoe to cart and checkout" "http://localhost:8000/demo/store.html" \
+  --mode goal_directed \
+  --device desktop \
+  --headless \
+  --file-bugs \
+  --fail-on-bug
 ```
 
----
+## 🏗 Architecture Overview
 
-## 🔌 API Reference
+The system is broken down into highly specialized modular engines:
 
-### `POST /api/test`
-Initiates an autonomous test run.
+- `orchestrator.py`: The central coordinator managing the testing lifecycle.
+- `agent.py`: Multimodal AI Agent driving the interaction.
+- `planner.py`: Goal translation and structured test case generation.
+- `observability.py`: Passive telemetry gathering (Network/Console).
+- `visual.py`: Pixel-diffing and layout drift detection.
+- `accessibility.py`: WCAG compliance validation.
+- `bug_detector.py`: Heuristically correlates findings to generate rich bug reports.
+- `recovery.py`: Self-healing strategies for broken locators and modals.
+- `github_integration.py`: Connects findings directly to issue trackers.
 
-**Request Body:**
-```json
-{
-  "url": "http://127.0.0.1:8000/demo/",
-  "goal": "Search for blue running shoes and add one to the cart.",
-  "max_steps": 25,
-  "headless": false
-}
-```
+## 🧪 Included Demo Application
 
-### `GET /api/test/{run_id}`
-Retrieves live progress, action logs, and metrics for a run.
-
-### `GET /api/test/{run_id}/report/html`
-Serves the standalone rendered HTML audit report.
-
-### `GET /api/test/{run_id}/report`
-Returns structured JSON evaluation metrics.
-
-### `GET /api/runs`
-Lists all historical test runs with summary metrics.
-
----
+A built-in demo e-commerce app is included for testing the capabilities of the agent. It contains intentional visual drift, accessibility violations, and network/console errors.
+Access it at: `http://127.0.0.1:8000/demo/store.html`
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License

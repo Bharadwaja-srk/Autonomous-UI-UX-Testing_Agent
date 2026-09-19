@@ -79,19 +79,24 @@ class StoreApp {
     }
 
     createProductCard(product) {
+        // Intentional visual layout shift simulation based on product rating
+        const layoutDrift = product.rating === 4.6 ? 'padding-top: 15px;' : '';
+        
         return `
-        <div class="product-card" id="card-${product.id}">
+        <div class="product-card" id="card-${product.id}" style="${layoutDrift}">
             <div class="product-card-img" onclick="app.viewProduct('${product.id}')">
                 <span class="product-card-badge">${product.badge}</span>
                 <span>${product.emoji}</span>
             </div>
             <div class="product-card-body">
                 <div class="product-card-category">${product.category} &bull; ${product.color}</div>
-                <div class="product-card-title" onclick="app.viewProduct('${product.id}')">${product.title}</div>
+                <!-- Intentional A11y Issue: low contrast inline style for title text to trigger axe-core -->
+                <div class="product-card-title" onclick="app.viewProduct('${product.id}')" style="color: #cbd5e1;">${product.title}</div>
                 <div class="product-card-price">$${product.price.toFixed(2)}</div>
                 <div class="product-card-actions">
                     <button class="btn-secondary" onclick="app.viewProduct('${product.id}')">Details</button>
-                    <button class="btn-primary" onclick="app.addToCartDirect('${product.id}')">Add to Cart</button>
+                    <!-- Intentional A11y Issue: button missing aria-label or distinct text for screen readers (just says Add) -->
+                    <button class="btn-primary" onclick="app.addToCartDirect('${product.id}')">Add</button>
                 </div>
             </div>
         </div>
@@ -266,6 +271,14 @@ class StoreApp {
         this.cart = [];
         this.updateCartUI();
         this.showView('success');
+        
+        // Intentional Console Error to trigger ObservabilityEngine
+        console.error("PaymentGatewayService: Unhandled exception during payment sync. Transaction ID undefined.");
+        
+        // Intentional Network Failure simulation (unhandled promise rejection)
+        fetch('/api/mock/analytics/track_purchase', { method: 'POST' })
+            .then(res => res.json())
+            .catch(err => console.error("Analytics Tracking Failed: Network Error", err));
     }
 
     openPromo() {

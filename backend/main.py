@@ -57,16 +57,38 @@ def on_step_update(payload: Dict[str, Any]):
             active_runs[run_id]["actions"].append(payload["action"])
 
 
-async def run_test_task(run_id: str, goal: str, url: str, max_steps: Optional[int], headless: Optional[bool]):
+async def run_test_task(
+    run_id: str,
+    request: StartTestRequest
+):
     """Background task executing the test orchestrator."""
     orchestrator = TestOrchestrator(
-        headless=headless,
-        max_steps=max_steps,
+        headless=request.headless,
+        max_steps=request.max_steps,
         on_step_callback=on_step_update,
     )
     orchestrators[run_id] = orchestrator
     try:
-        evaluation = await orchestrator.execute_test(goal=goal, target_url=url)
+        evaluation = await orchestrator.execute_test(
+            goal=request.goal,
+            target_url=request.url,
+            mode=request.mode,
+            device_name=request.device,
+            enable_visual_regression=request.enable_visual_regression,
+            baseline_run_id=request.baseline_run_id,
+            enable_pii_redaction=request.enable_pii_redaction,
+        )
+        
+        # Trigger GitHub integration if requested and bugs were found
+        if request.enable_github_issues and evaluation.bug_reports:
+            try:
+                from backend.github_integration import GitHubIntegration
+                github = GitHubIntegration()
+                await github.file_critical_bugs(evaluation.bug_reports)
+                logger.info(f"Filed critical bugs to GitHub for run {run_id}")
+            except Exception as github_err:
+                logger.error(f"Failed to file GitHub issues: {github_err}")
+                
         active_runs[run_id]["evaluation"] = evaluation.model_dump()
         active_runs[run_id]["completed"] = True
     except Exception as e:
@@ -110,10 +132,7 @@ async def start_test(request: StartTestRequest, background_tasks: BackgroundTask
     background_tasks.add_task(
         run_test_task,
         run_id=run_id,
-        goal=request.goal,
-        url=request.url,
-        max_steps=request.max_steps,
-        headless=request.headless,
+        request=request,
     )
 
     return {
@@ -188,7 +207,8 @@ async def list_runs():
                     "start_time": data.get("start_time", ""),
                     "total_steps": len(data.get("actions", [])),
                     "friction_score": data.get("metrics", {}).get("friction_score", 0),
-                    "a11y_score": data.get("metrics", {}).get("accessibility_score", 100),
+                    "mode": data.get("mode", "goal_directed"),
+                    "device_profile": data.get("device_profile", {"name": "desktop"}),
                 })
         except Exception as e:
             logger.warning(f"Error reading run file {f}: {e}")

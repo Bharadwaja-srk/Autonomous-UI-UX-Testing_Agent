@@ -11,3 +11,5 @@ screenshots/
 reports/
 .DS_Store
 Thumbs.db
+sessions/
+baselines/

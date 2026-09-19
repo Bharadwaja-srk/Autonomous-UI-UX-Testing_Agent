@@ -22,7 +22,8 @@ You receive:
 2. Page metadata (URL, Title).
 3. Structured list of interactive UI elements with numerical IDs [ID].
 4. Accessibility observations and detected modals/popups.
-5. Action history of previous steps.
+5. Action history of previous steps, including recovery attempts and success status.
+6. Console and network errors detected during the last step.
 
 CRITICAL RULES:
 - You must choose EXACTLY ONE action for the current step.
@@ -50,7 +51,8 @@ JSON RESPONSE FORMAT:
   "scroll_direction": "down",
   "scroll_amount": 300,
   "navigate_url": null,
-  "reasoning": "Clicking the 'Add to Cart' button to add the selected blue running shoe to cart."
+  "reasoning": "Clicking the 'Add to Cart' button to add the selected blue running shoe to cart.",
+  "decision_evidence": "Detected checkout button from semantic role and visual context."
 }
 """
 
@@ -59,16 +61,16 @@ class AIAgent:
     def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
         self.api_key = api_key or settings.GEMINI_API_KEY
         self.model_name = model_name or settings.GEMINI_MODEL
-        self._client = None
+        self.client = None
         
         if self.api_key:
             try:
                 from google import genai
-                self._client = genai.Client(api_key=self.api_key)
+                self.client = genai.Client(api_key=self.api_key)
                 logger.info(f"Gemini AI Client initialized with model: {self.model_name}")
             except Exception as e:
                 logger.warning(f"Failed to initialize google-genai client: {e}")
-                self._client = None
+                self.client = None
         else:
             logger.warning("No GEMINI_API_KEY configured. Fallback heuristic decision mode will be used if needed.")
 
@@ -85,7 +87,7 @@ class AIAgent:
         step_number = len(action_history) + 1
 
         # Try Gemini Multimodal AI decision
-        if self._client:
+        if self.client:
             try:
                 return await self._call_gemini(
                     goal=goal,
@@ -118,7 +120,7 @@ class AIAgent:
 
         # Build context prompt
         history_text = "\n".join([
-            f"Step {a.step_number}: Action={a.action_type.value}, TargetID={a.target_id}, TargetText='{a.target_text or ''}', Success={a.success}, Reasoning='{a.reasoning}'"
+            f"Step {a.step_number}: Action={a.action_type.value}, TargetID={a.target_id}, TargetText='{a.target_text or ''}', Success={a.success}, Reasoning='{a.reasoning}', Evidence='{a.decision_evidence}'"
             for a in action_history[-6:]
         ]) if action_history else "No previous actions (initial step)."
 
@@ -135,10 +137,11 @@ ACCESSIBILITY & DIALOG STATUS:
 INTERACTIVE UI ELEMENTS:
 {state.dom_summary}
 
-RECENT ACTION HISTORY:
+RECENT ACTION HISTORY & CONTEXT:
 {history_text}
 
 Analyze the current screenshot and interactive elements. Decide the single best action to advance towards achieving the goal '{goal}'.
+Provide your specific evidence for this decision in the 'decision_evidence' field.
 Return ONLY JSON.
 """
 
@@ -154,7 +157,7 @@ Return ONLY JSON.
         contents.append(user_prompt)
 
         def sync_generate():
-            return self._client.models.generate_content(
+            return self.client.models.generate_content(
                 model=self.model_name,
                 contents=contents,
                 config=types.GenerateContentConfig(
@@ -179,6 +182,7 @@ Return ONLY JSON.
         scroll_amt = parsed.get("scroll_amount", 300)
         nav_url = parsed.get("navigate_url")
         reasoning = parsed.get("reasoning", "Decided by Gemini AI Agent.")
+        decision_evidence = parsed.get("decision_evidence", "AI inference based on visual and DOM context.")
 
         # Map to ActionType
         try:
@@ -208,6 +212,7 @@ Return ONLY JSON.
             scroll_amount=scroll_amt,
             navigate_url=nav_url,
             reasoning=reasoning,
+            decision_evidence=decision_evidence,
             screenshot_before=state.screenshot,
         )
 
@@ -236,11 +241,11 @@ Return ONLY JSON.
                         target_text=el.text or el.aria_label,
                         target_selector=el.selector,
                         reasoning=f"Dismissing active modal popup '{state.detected_popups[0]}'",
+                        decision_evidence="Matched popup dismiss keywords (close/dismiss/x) on active element.",
                         screenshot_before=state.screenshot,
                     )
 
         # 2. Check if goal is already completed
-        # Check if cart contains items or order completed
         cart_has_items = any(
             any(k in (el.text or "").lower() for k in ["cart 1", "cart 2", "cart (1)", "cart (2)", "shopping cart (1)", "shopping cart (2)", "item added to cart"])
             for el in state.elements
@@ -248,12 +253,12 @@ Return ONLY JSON.
         just_added = action_history and any("add to cart" in (a.reasoning or "").lower() or "add to cart" in (a.target_text or "").lower() for a in action_history[-2:])
         
         if ("cart" in goal_lower or "add" in goal_lower) and (cart_has_items or just_added):
-            # If goal was simply to add to cart, declare done
             if "checkout" not in goal_lower:
                 return AgentAction(
                     step_number=step_number,
                     action_type=ActionType.DONE,
                     reasoning="Item has been confirmed added to the shopping cart. User goal achieved.",
+                    decision_evidence="Detected cart quantity change or recent successful 'add to cart' action.",
                     screenshot_before=state.screenshot,
                 )
 
@@ -262,6 +267,7 @@ Return ONLY JSON.
                 step_number=step_number,
                 action_type=ActionType.DONE,
                 reasoning="Order has been successfully confirmed placed.",
+                decision_evidence="Detected 'order confirmed' success text in DOM.",
                 screenshot_before=state.screenshot,
             )
 
@@ -277,6 +283,7 @@ Return ONLY JSON.
                         target_text=el.text or el.aria_label,
                         target_selector=el.selector,
                         reasoning="Clicking 'Add to Cart' button.",
+                        decision_evidence="Found primary CTA matching 'cart' or 'buy' intent.",
                         screenshot_before=state.screenshot,
                     )
 
@@ -286,7 +293,6 @@ Return ONLY JSON.
             el_desc = f"{el.text} {el.aria_label or ''} {el.href or ''}".lower()
             matched = sum(1 for kw in keywords if kw in el_desc)
             if matched >= 1 and el.role in ["link", "button", "div", "element"]:
-                # Avoid re-clicking the same thing if last action failed
                 if not (action_history and action_history[-1].target_id == el.id and not action_history[-1].success):
                     return AgentAction(
                         step_number=step_number,
@@ -295,6 +301,7 @@ Return ONLY JSON.
                         target_text=el.text or el.aria_label,
                         target_selector=el.selector,
                         reasoning=f"Navigating to matching product: '{el.text or el.aria_label}'",
+                        decision_evidence=f"Element text matched goal keywords: {keywords}",
                         screenshot_before=state.screenshot,
                     )
 
@@ -312,10 +319,8 @@ Return ONLY JSON.
             ]
             if search_inputs:
                 target = search_inputs[0]
-                # Check if we already typed recently
                 already_typed = any(a.action_type == ActionType.TYPE and a.target_id == target.id for a in action_history[-2:])
                 if not already_typed:
-                    # Extract search query
                     query = "blue running shoes" if "blue" in goal_lower else "running shoes"
                     return AgentAction(
                         step_number=step_number,
@@ -326,10 +331,10 @@ Return ONLY JSON.
                         text_input=query,
                         key="Enter",
                         reasoning=f"Entering search query '{query}' into search field.",
+                        decision_evidence="Found input field with 'search' semantics.",
                         screenshot_before=state.screenshot,
                     )
 
-            # Look for Search Button
             search_buttons = [
                 el for el in state.elements
                 if el.role in ["button", "input"] and any(
@@ -346,15 +351,17 @@ Return ONLY JSON.
                     target_text=target.text or target.aria_label or "Search",
                     target_selector=target.selector,
                     reasoning="Clicking Search button to submit query.",
+                    decision_evidence="Found button with 'search' semantics.",
                     screenshot_before=state.screenshot,
                 )
 
-        # 6. Default Fallback: Scroll or conclude
+        # 6. Default Fallback
         if step_number > 15:
             return AgentAction(
                 step_number=step_number,
                 action_type=ActionType.FAILED,
                 reasoning="Exceeded reasonable step count without identifying further goal progression paths.",
+                decision_evidence="Step limit reached in heuristic mode.",
                 screenshot_before=state.screenshot,
             )
 
@@ -364,5 +371,6 @@ Return ONLY JSON.
             scroll_direction="down",
             scroll_amount=350,
             reasoning="Scrolling down to reveal more interactive options.",
+            decision_evidence="No matching elements found in current viewport; scrolling to discover more.",
             screenshot_before=state.screenshot,
         )

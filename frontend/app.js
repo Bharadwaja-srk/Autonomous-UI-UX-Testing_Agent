@@ -1,5 +1,5 @@
 /**
- * Autonomous UI/UX & A11y Testing Dashboard Logic
+ * Enterprise QA Testing Platform - Dashboard Logic
  */
 
 class DashboardApp {
@@ -22,15 +22,19 @@ class DashboardApp {
     async startTest() {
         const url = document.getElementById('targetUrl').value.trim();
         const goal = document.getElementById('goalInput').value.trim();
-        const maxSteps = parseInt(document.getElementById('maxStepsInput').value, 10) || 25;
+        const maxSteps = parseInt(document.getElementById('maxStepsInput').value, 10) || 30;
         const headless = document.getElementById('headlessCheckbox').checked;
+        const visualReg = document.getElementById('visualCheckbox').checked;
+        const github = document.getElementById('githubCheckbox').checked;
+        const pii = document.getElementById('piiCheckbox').checked;
+        const mode = document.getElementById('testModeSelect').value;
+        const device = document.getElementById('deviceSelect').value;
 
         if (!url || !goal) {
             alert("Please enter both a target URL and a test goal.");
             return;
         }
 
-        // Set UI to running state
         this.setRunningState(true);
         this.resetMonitor();
 
@@ -42,7 +46,12 @@ class DashboardApp {
                     url: url,
                     goal: goal,
                     max_steps: maxSteps,
-                    headless: headless
+                    headless: headless,
+                    mode: mode,
+                    device: device,
+                    enable_visual_regression: visualReg,
+                    enable_github_issues: github,
+                    enable_pii_redaction: pii
                 })
             });
 
@@ -53,9 +62,8 @@ class DashboardApp {
 
             const data = await response.json();
             this.activeRunId = data.run_id;
-            this.updateActivity("Test run initialized. Connecting to browser engine...");
+            this.updateActivity("Test run initialized. Booting browser and allocating device profile...");
 
-            // Start status polling
             this.startPolling();
 
         } catch (error) {
@@ -90,7 +98,7 @@ class DashboardApp {
 
     handlePollUpdate(data) {
         const step = data.current_step || 0;
-        const maxSteps = parseInt(document.getElementById('maxStepsInput').value, 10) || 25;
+        const maxSteps = parseInt(document.getElementById('maxStepsInput').value, 10) || 30;
         document.getElementById('stepCounterDisplay').innerText = `Step ${step} / ${maxSteps}`;
         document.getElementById('liveStatusBadge').innerText = data.current_status || "RUNNING";
 
@@ -98,11 +106,9 @@ class DashboardApp {
             this.updateActivity(data.last_message);
         }
 
-        // Render Action Feed
         if (data.actions && data.actions.length > 0) {
             this.renderActionFeed(data.actions);
             
-            // Update latest screenshot
             const latestAction = data.actions[data.actions.length - 1];
             if (latestAction && latestAction.screenshot_before) {
                 this.updateScreenshot(this.activeRunId, latestAction.screenshot_before);
@@ -115,7 +121,6 @@ class DashboardApp {
         this.updateActivity(`✅ Test Finished: ${data.current_status}`);
         document.getElementById('liveStatusBadge').innerText = data.current_status;
 
-        // Fetch and display evaluation report
         if (data.evaluation) {
             this.renderEvaluationSummary(data.evaluation);
         } else {
@@ -139,57 +144,69 @@ class DashboardApp {
 
     renderEvaluationSummary(evaluation) {
         this.currentEvaluation = evaluation;
-        this.allFindings = evaluation.findings || [];
+        
+        // Flatten findings for dashboard UI filtering
+        this.allFindings = [
+            ...(evaluation.bug_reports || []).map(b => ({
+                id: b.bug_id, type: 'BUG', category: b.category, severity: b.severity,
+                title: b.title, desc: b.description, rec: b.suggested_fix
+            })),
+            ...(evaluation.findings || []).map(f => ({
+                id: f.finding_id, type: 'UX', category: f.category, severity: f.severity,
+                title: f.title, desc: f.description, rec: f.recommendation
+            }))
+        ];
 
         const evalCard = document.getElementById('evaluationResultsCard');
         evalCard.style.display = 'block';
         evalCard.scrollIntoView({ behavior: 'smooth' });
 
-        // Update Report Links
         document.getElementById('viewHtmlReportBtn').href = `/api/test/${evaluation.run_id}/report/html`;
         document.getElementById('downloadJsonBtn').href = `/api/test/${evaluation.run_id}/report`;
 
-        // Update Metrics
         const m = evaluation.metrics || {};
         document.getElementById('metricFrictionVal').innerText = `${evaluation.friction_score}/100`;
-        document.getElementById('metricFrictionSub').innerText = evaluation.friction_score <= 25 ? 'Low Friction' : evaluation.friction_score <= 55 ? 'Moderate Friction' : 'High Usability Friction';
+        document.getElementById('metricFrictionSub').innerText = evaluation.friction_score <= 25 ? 'Smooth Journey' : 'High Usability Friction';
 
-        document.getElementById('metricA11yVal').innerText = `${evaluation.accessibility_score}/100`;
-        document.getElementById('metricA11ySub').innerText = `${m.accessibility_issues_count || 0} issues detected`;
+        const bugCount = (evaluation.bug_reports || []).length;
+        document.getElementById('metricBugsVal').innerText = bugCount;
+        document.getElementById('metricBugsVal').className = `eval-metric-val ${bugCount > 0 ? 'color-red' : 'color-green'}`;
 
-        document.getElementById('metricStepsVal').innerText = evaluation.total_steps;
-        document.getElementById('metricStepsSub').innerText = `${m.successful_actions || 0} success / ${m.failed_actions || 0} fail`;
+        const visualA11yCount = (evaluation.visual_diffs || []).length + (evaluation.findings || []).length;
+        document.getElementById('metricA11yVal').innerText = visualA11yCount;
 
-        document.getElementById('metricLoopsVal').innerText = `${m.possible_loops || 0} / ${m.backtracks || 0}`;
+        const recoveries = (evaluation.recovery_actions || []).length;
+        document.getElementById('metricRecoveriesVal').innerText = recoveries;
 
         document.getElementById('findingsTotalCount').innerText = this.allFindings.length;
         this.filterFindings('ALL');
     }
 
-    filterFindings(category) {
+    filterFindings(viewType) {
         document.querySelectorAll('.findings-tab').forEach(t => t.classList.remove('active'));
         if (event && event.target) event.target.classList.add('active');
 
         const listContainer = document.getElementById('dashboardFindingsList');
         if (!listContainer) return;
 
-        const filtered = category === 'ALL' 
-            ? this.allFindings 
-            : this.allFindings.filter(f => f.category === category);
+        let filtered = [];
+        if (viewType === 'ALL') filtered = this.allFindings;
+        else if (viewType === 'BUGS') filtered = this.allFindings.filter(f => f.type === 'BUG');
+        else if (viewType === 'UX') filtered = this.allFindings.filter(f => f.type === 'UX');
 
         if (filtered.length === 0) {
-            listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No ${category} findings detected.</div>`;
+            listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No issues detected for this category.</div>`;
             return;
         }
 
         listContainer.innerHTML = filtered.map(f => `
             <div class="dash-finding-card sev-${f.severity}">
                 <div class="dash-finding-header">
-                    <span class="dash-finding-title">${f.title}</span>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">[${f.category}] &bull; ${f.severity}</span>
+                    <span class="dash-finding-title">[${f.type}] ${f.title}</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">${f.category} &bull; ${f.severity}</span>
                 </div>
-                <div class="dash-finding-desc">${f.description}</div>
-                <div class="dash-finding-rec"><strong>💡 Recommendation:</strong> ${f.recommendation}</div>
+                <div class="dash-finding-desc">${f.desc}</div>
+                <div class="dash-finding-rec"><strong>💡 Resolution:</strong> ${f.rec}</div>
             </div>
         `).join('');
     }
@@ -202,7 +219,7 @@ class DashboardApp {
                     <span class="step-card-type">Step ${a.step_number}: ${a.action_type}</span>
                     <span>${a.success ? '✅' : '❌'}</span>
                 </div>
-                <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 2px;">
+                <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; color: var(--info);">
                     ${a.target_text || (a.target_id ? `Target [${a.target_id}]` : '') || a.text_input || ''}
                 </div>
                 <div class="step-card-reason">${a.reasoning || ''}</div>
@@ -224,7 +241,7 @@ class DashboardApp {
     }
 
     resetMonitor() {
-        document.getElementById('actionFeedList').innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 20px; text-align: center;">Waiting for first action step...</div>';
+        document.getElementById('actionFeedList').innerHTML = '<div class="empty-state">Waiting for first action step...</div>';
         document.getElementById('emptyScreenshot').style.display = 'block';
         document.getElementById('liveScreenshotImg').style.display = 'none';
         document.getElementById('evaluationResultsCard').style.display = 'none';
@@ -243,7 +260,7 @@ class DashboardApp {
         } else {
             btn.disabled = false;
             icon.innerText = "⚡";
-            text.innerText = "LAUNCH AUTONOMOUS TEST";
+            text.innerText = "LAUNCH AUTONOMOUS RUN";
         }
     }
 
@@ -257,7 +274,7 @@ class DashboardApp {
             const runs = data.runs || [];
 
             if (runs.length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No previous test runs found.</div>`;
+                container.innerHTML = `<div class="empty-state">No previous test runs found.</div>`;
                 return;
             }
 
@@ -265,11 +282,11 @@ class DashboardApp {
                 <div class="past-run-item" onclick="window.open('/api/test/${r.run_id}/report/html', '_blank')">
                     <div class="past-run-header">
                         <span>${r.run_id}</span>
-                        <span>${r.status}</span>
+                        <span style="color: ${r.status === 'COMPLETED' ? 'var(--success)' : 'var(--danger)'}">${r.status}</span>
                     </div>
                     <div class="past-run-goal">${r.goal}</div>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
-                        Steps: ${r.total_steps} &bull; Friction: ${r.friction_score}/100 &bull; 📄 View Report
+                        Mode: ${r.mode} &bull; Device: ${r.device_profile.name} &bull; Score: ${r.friction_score}/100
                     </div>
                 </div>
             `).join('');

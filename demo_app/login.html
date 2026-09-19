@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Apex Shoes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="store.css">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #0f172a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #4f46e5;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: #4338ca;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Intentional Accessibility Trap: Hidden link out of focus order */
+        .hidden-trap {
+            position: absolute;
+            left: -9999px;
+        }
+    </style>
+</head>
+<body style="background-color: #f8fafc;">
+    
+    <nav class="store-nav">
+        <div class="nav-brand">APEX SHOES</div>
+        <div class="nav-links">
+            <a href="store.html" class="nav-link">Shop</a>
+        </div>
+    </nav>
+
+    <div class="login-container">
+        <h1 class="login-title">Welcome Back</h1>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <!-- Intentional A11y Issue: Missing "for" attribute -->
+                <label>Email Address</label>
+                <input type="email" id="emailInput" placeholder="test@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="passwordInput">Password</label>
+                <!-- Intentional usability friction: Password input requires strict rules but doesn't explain them -->
+                <input type="password" id="passwordInput" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+            <div class="error-message" id="errorMsg">Invalid credentials. Please try again.</div>
+        </form>
+    </div>
+
+    <!-- Accessibility trap link -->
+    <a href="#" class="hidden-trap">Skip to main content</a>
+
+    <script>
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            const pass = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('loginBtn');
+            const error = document.getElementById('errorMsg');
+
+            error.style.display = 'none';
+            btn.innerHTML = 'Signing In...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Intentional friction: Artificial delay and strict login logic to test agent recovery
+                if (email === "test@example.com" && pass === "password123") {
+                    window.location.href = "store.html?loggedIn=true";
+                } else {
+                    error.style.display = 'block';
+                    btn.innerHTML = 'Sign In';
+                    btn.disabled = false;
+                    
+                    // Intentional Console Error for Observability Engine to catch
+                    console.error("AuthService: Authentication failed for user " + email);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

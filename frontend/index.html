@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autonomous UI/UX & A11y Testing Engine</title>
+    <title>Enterprise QA Testing Platform</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,13 +16,13 @@
             <div class="brand-group">
                 <div class="brand-icon">🤖</div>
                 <div>
-                    <h1 class="brand-title">AUTONOMOUS UI TESTER</h1>
-                    <p class="brand-subtitle">Agentic Black-Box UI/UX & Accessibility Audit Engine</p>
+                    <h1 class="brand-title">ENTERPRISE QA PLATFORM</h1>
+                    <p class="brand-subtitle">AI-Powered Autonomous End-to-End Testing</p>
                 </div>
             </div>
             <div class="header-status">
                 <span class="status-indicator-dot pulse"></span>
-                <span id="systemStatusText">Ready for Autonomous Testing</span>
+                <span id="systemStatusText">System Ready</span>
             </div>
         </header>
 
@@ -30,8 +30,7 @@
             <!-- Left Column: Test Configuration & Active Journey -->
             <section class="config-panel">
                 <div class="panel-card">
-                    <h2 class="panel-title">🎯 Test Configuration</h2>
-                    <p class="panel-desc">Provide a high-level natural language intent and target web application.</p>
+                    <h2 class="panel-title">🎯 New Test Configuration</h2>
 
                     <!-- Target URL -->
                     <div class="input-group">
@@ -45,46 +44,82 @@
                     <!-- Natural Language Goal -->
                     <div class="input-group">
                         <label for="goalInput">Natural Language Test Goal</label>
-                        <textarea id="goalInput" rows="3" placeholder="e.g. Search for blue running shoes and add one to the cart.">Search for blue running shoes and add one to the cart.</textarea>
+                        <textarea id="goalInput" rows="3" placeholder="e.g. Add a product to the cart and verify checkout validations.">Add a product to the cart and verify checkout validations.</textarea>
                     </div>
 
-                    <!-- Quick Intent Templates -->
                     <div class="template-section">
-                        <span class="template-label">Quick Intent Templates:</span>
                         <div class="template-chips">
-                            <button class="template-chip" onclick="app.setTemplate('Search for blue running shoes and add one to the cart.')">👟 Blue Running Shoes</button>
-                            <button class="template-chip" onclick="app.setTemplate('Explore trail category, select Apex Trail Pro, and proceed to checkout.')">🥾 Trail Checkout</button>
-                            <button class="template-chip" onclick="app.setTemplate('Find black gym trainer shoes and verify size selection.')">🏋️ Gym Trainers</button>
+                            <button class="template-chip" onclick="app.setTemplate('Add a product to the cart and verify checkout validations.')">🛒 Cart & Checkout</button>
+                            <button class="template-chip" onclick="app.setTemplate('Search for blue running shoes and verify results display correctly.')">🔍 Search Validation</button>
                         </div>
                     </div>
 
-                    <!-- Advanced Settings -->
+                    <hr class="divider">
+
+                    <!-- Engine Configuration -->
+                    <h3 class="panel-section-title">Engine Configuration</h3>
+                    
+                    <div class="options-grid">
+                        <div class="input-group">
+                            <label for="testModeSelect">Test Mode</label>
+                            <select id="testModeSelect">
+                                <option value="goal_directed">Goal Directed (AI Planned)</option>
+                                <option value="exploratory">Exploratory (Autonomous Discovery)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="deviceSelect">Device Profile</label>
+                            <select id="deviceSelect">
+                                <option value="desktop">Desktop (1280x800)</option>
+                                <option value="tablet">Tablet (768x1024, Touch)</option>
+                                <option value="mobile">Mobile (375x812, Touch)</option>
+                                <option value="mobile_landscape">Mobile Landscape (812x375)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="options-row">
                         <div class="option-item">
-                            <label for="maxStepsInput">Max Steps:</label>
-                            <input type="number" id="maxStepsInput" min="5" max="50" value="25">
+                            <label for="maxStepsInput">Max Step Limit:</label>
+                            <input type="number" id="maxStepsInput" min="5" max="100" value="30">
                         </div>
                         <div class="option-item-checkbox">
-                            <input type="checkbox" id="headlessCheckbox">
+                            <input type="checkbox" id="headlessCheckbox" checked>
                             <label for="headlessCheckbox">Run Headless</label>
+                        </div>
+                        <div class="option-item-checkbox">
+                            <input type="checkbox" id="visualCheckbox">
+                            <label for="visualCheckbox">Visual Regression</label>
+                        </div>
+                    </div>
+
+                    <div class="options-row" style="margin-top: 15px;">
+                        <div class="option-item-checkbox">
+                            <input type="checkbox" id="githubCheckbox">
+                            <label for="githubCheckbox">File High/Critical Bugs to GitHub</label>
+                        </div>
+                        <div class="option-item-checkbox">
+                            <input type="checkbox" id="piiCheckbox">
+                            <label for="piiCheckbox">Enable PII Redaction</label>
                         </div>
                     </div>
 
                     <!-- Start Button -->
                     <button class="btn-start-test" id="startTestBtn" onclick="app.startTest()">
                         <span id="btnIcon">⚡</span>
-                        <span id="btnText">LAUNCH AUTONOMOUS TEST</span>
+                        <span id="btnText">LAUNCH AUTONOMOUS RUN</span>
                     </button>
                 </div>
 
                 <!-- Recent Runs History -->
                 <div class="panel-card" style="margin-top: 24px;">
                     <div class="panel-card-header">
-                        <h3 style="font-size: 1.1rem; font-weight: 700;">📜 Past Test Runs</h3>
-                        <button class="btn-refresh" onclick="app.loadPastRuns()">🔄 Refresh</button>
+                        <h3 class="panel-title">📜 Run History</h3>
+                        <button class="btn-refresh" onclick="app.loadPastRuns()">🔄</button>
                     </div>
                     <div class="past-runs-list" id="pastRunsList">
-                        <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No previous test runs recorded.</div>
+                        <div class="empty-state">No previous test runs recorded.</div>
                     </div>
                 </div>
             </section>
@@ -95,50 +130,46 @@
                 <div class="panel-card" id="liveMonitorCard">
                     <div class="panel-card-header">
                         <div class="monitor-title-group">
-                            <h2 class="panel-title">📡 Live Agent Perception & Action Feed</h2>
+                            <h2 class="panel-title">📡 Live Telemetry & AI Stream</h2>
                             <span class="badge-running" id="liveStatusBadge">IDLE</span>
                         </div>
-                        <span class="step-counter" id="stepCounterDisplay">Step 0 / 25</span>
+                        <span class="step-counter" id="stepCounterDisplay">Step 0 / 30</span>
                     </div>
 
                     <div class="current-activity-banner" id="currentActivityBanner">
-                        <span class="activity-label">AGENT REASONING & CURRENT ACTION:</span>
+                        <span class="activity-label">AI REASONING:</span>
                         <div class="activity-text" id="currentActivityText">Waiting for test launch...</div>
                     </div>
 
                     <!-- Dual View: Screenshot + Action Timeline -->
                     <div class="live-dual-view">
-                        <!-- Screenshot preview -->
                         <div class="screenshot-viewer-box">
-                            <div class="viewer-header">Latest Perception Screenshot</div>
+                            <div class="viewer-header">Browser Viewport</div>
                             <div class="image-wrapper" id="screenshotWrapper">
                                 <div class="empty-state-screen" id="emptyScreenshot">
                                     <span>📸</span>
-                                    <p>Live visual perception will appear once browser navigation begins.</p>
+                                    <p>Live visual perception will appear here.</p>
                                 </div>
-                                <img id="liveScreenshotImg" class="live-screenshot" style="display: none;" alt="Live Browser View">
+                                <img id="liveScreenshotImg" class="live-screenshot" style="display: none;" alt="Live View">
                             </div>
                         </div>
 
-                        <!-- Live Action Feed -->
                         <div class="action-feed-box">
-                            <div class="viewer-header">Journey Steps Timeline</div>
+                            <div class="viewer-header">Execution Timeline</div>
                             <div class="action-feed-list" id="actionFeedList">
-                                <div style="color: var(--text-muted); font-size: 0.85rem; padding: 30px; text-align: center;">
-                                    Actions taken by the AI agent will stream here in real-time.
-                                </div>
+                                <div class="empty-state">Timeline events will stream here...</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Post-Run Evaluation & Report Summary (Shown upon completion) -->
+                <!-- Post-Run Evaluation -->
                 <div class="panel-card" id="evaluationResultsCard" style="display: none; margin-top: 24px;">
                     <div class="panel-card-header">
-                        <h2 class="panel-title">📊 Executive Audit Findings & Metrics</h2>
+                        <h2 class="panel-title">📊 Executive Audit Results</h2>
                         <div class="report-cta-group">
-                            <a id="viewHtmlReportBtn" target="_blank" class="btn-report-action btn-report-html">📄 View Full HTML Report</a>
-                            <a id="downloadJsonBtn" target="_blank" class="btn-report-action btn-report-json">💾 JSON Report</a>
+                            <a id="viewHtmlReportBtn" target="_blank" class="btn-report-action btn-report-html">📄 Executive Report</a>
+                            <a id="downloadJsonBtn" target="_blank" class="btn-report-action btn-report-json">💾 Raw Data</a>
                         </div>
                     </div>
 
@@ -150,29 +181,28 @@
                             <span class="eval-metric-sub" id="metricFrictionSub">Calculating...</span>
                         </div>
                         <div class="eval-metric-card">
-                            <span class="eval-metric-title">Accessibility Score</span>
-                            <span class="eval-metric-val" id="metricA11yVal">100/100</span>
-                            <span class="eval-metric-sub" id="metricA11ySub">0 issues</span>
+                            <span class="eval-metric-title">Bug Reports</span>
+                            <span class="eval-metric-val" id="metricBugsVal">0</span>
+                            <span class="eval-metric-sub">Detected Bugs</span>
                         </div>
                         <div class="eval-metric-card">
-                            <span class="eval-metric-title">Total Steps</span>
-                            <span class="eval-metric-val" id="metricStepsVal">0</span>
-                            <span class="eval-metric-sub" id="metricStepsSub">0 success</span>
+                            <span class="eval-metric-title">AI Recoveries</span>
+                            <span class="eval-metric-val color-blue" id="metricRecoveriesVal">0</span>
+                            <span class="eval-metric-sub">Self-Healing</span>
                         </div>
                         <div class="eval-metric-card">
-                            <span class="eval-metric-title">Loops & Backtracks</span>
-                            <span class="eval-metric-val" id="metricLoopsVal">0 / 0</span>
-                            <span class="eval-metric-sub">Navigation Friction</span>
+                            <span class="eval-metric-title">Visual / A11y</span>
+                            <span class="eval-metric-val" id="metricA11yVal">0</span>
+                            <span class="eval-metric-sub">Issues Found</span>
                         </div>
                     </div>
 
                     <!-- Filterable Findings -->
                     <div class="findings-container">
                         <div class="findings-tabs">
-                            <button class="findings-tab active" onclick="app.filterFindings('ALL')">All Findings (<span id="findingsTotalCount">0</span>)</button>
-                            <button class="findings-tab" onclick="app.filterFindings('UX')">UX Friction</button>
-                            <button class="findings-tab" onclick="app.filterFindings('ACCESSIBILITY')">Accessibility</button>
-                            <button class="findings-tab" onclick="app.filterFindings('NAVIGATION')">Navigation</button>
+                            <button class="findings-tab active" onclick="app.filterFindings('ALL')">All Reports (<span id="findingsTotalCount">0</span>)</button>
+                            <button class="findings-tab" onclick="app.filterFindings('BUGS')">Bugs</button>
+                            <button class="findings-tab" onclick="app.filterFindings('UX')">UX & A11y</button>
                         </div>
                         <div class="findings-list-wrapper" id="dashboardFindingsList">
                             <!-- Injected by JS -->

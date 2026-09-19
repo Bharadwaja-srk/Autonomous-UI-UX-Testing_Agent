@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from backend.driver import BrowserDriver
 from backend.schemas import UIElement, PerceptionState, BoundingBox
+from backend.pii_redaction import PIIRedactionEngine
 
 logger = logging.getLogger("autonomous_tester.perception")
 
@@ -196,7 +197,7 @@ class PerceptionEngine:
     def __init__(self, driver: BrowserDriver):
         self.driver = driver
 
-    async def capture_state(self, step_number: int, screenshot_path: Path) -> PerceptionState:
+    async def capture_state(self, step_number: int, screenshot_path: Path, enable_pii: bool = False) -> PerceptionState:
         """
         Capture the complete multimodal perception state:
         Screenshot, interactive elements, page metadata, a11y summary, and state hash.
@@ -254,6 +255,27 @@ class PerceptionEngine:
         # 5. Build Human/LLM Readable DOM and A11y summaries
         dom_summary = self._build_dom_summary(ui_elements)
         a11y_summary = self._build_a11y_summary(all_a11y_issues, raw_data.get("detected_popups", []))
+
+        # Optional PII Redaction
+        if enable_pii:
+            pii_engine = PIIRedactionEngine()
+            
+            # Mask text attributes in ui_elements
+            for el in ui_elements:
+                el.text = pii_engine.mask_text(el.text)
+                el.placeholder = pii_engine.mask_text(el.placeholder)
+                el.value = pii_engine.mask_text(el.value)
+                
+            # Rebuild summaries with masked elements
+            dom_summary = self._build_dom_summary(ui_elements)
+            
+            # Mask page titles and popup names
+            raw_data["title"] = pii_engine.mask_text(raw_data.get("title", ""))
+            raw_data["detected_popups"] = [pii_engine.mask_text(p) for p in raw_data.get("detected_popups", [])]
+            a11y_summary = self._build_a11y_summary(all_a11y_issues, raw_data.get("detected_popups", []))
+            
+            # Visually redact screenshot
+            pii_engine.mask_screenshot(screenshot_path, ui_elements)
 
         return PerceptionState(
             step_number=step_number,
