@@ -231,6 +231,7 @@ class TestOrchestrator:
                     )
 
                 logger.info(f"Step {step} Action: {action.action_type.value} on [{action.target_id or action.target_text}] - {action.reasoning}")
+                action.screenshot_before = screenshot_filename
                 self.session.record_event(SessionEventType.AI_DECISION, step, action.action_type.value, action.reasoning)
 
                 # f. Termination checks
