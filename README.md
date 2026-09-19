@@ -10,20 +10,20 @@ An agentic, framework-agnostic **Autonomous Black-Box UI/UX & Accessibility Test
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
-- **🤖 Multimodal AI Reasoning**: Leverages Google Gemini (`gemini-3.7-flash` / `gemini-2.5-flash`) to visually analyze page screenshots alongside structured DOM interactive element snapshots to decide optimal next actions.
-- **🧠 Hybrid Dual Engine**: Features a smart fallback heuristic decision engine that allows reliable offline operation and deterministic execution even without an active API key.
-- **🌐 Black-Box Browser Automation**: Built on Playwright to execute out-of-band mouse clicks, text typing, keyboard interaction, scrolling, and navigation without modifying or invading target codebase source code.
-- **♿ Automated Accessibility (A11y) Audit**: Real-time detection of unlabeled buttons, missing input labels, icon-only controls, and keyboard accessibility flaws during navigation.
-- **📐 Quantitative UX Friction Scoring**: Transparent heuristic model evaluating user effort (0–100 score) penalizing excess steps, action failures, repeated clicks, cyclic navigation loops, and backtracks.
-- **📊 Standalone Executive HTML Reports**: Renders self-contained dark-mode audit reports complete with step-by-step reasoning timelines, screenshot thumbnails, severity ratings, and actionable UI recommendations.
-- **🖥️ Live Interactive Dashboard**: Web UI for monitoring real-time agent perception feeds, action logs, screenshot previews, intent templates, and run history.
-- **🛍️ Built-in Demo E-Commerce Store**: Includes an integrated mock store (`/demo`) for instant out-of-the-box testing and verification.
+- ** Multimodal AI Reasoning**: Leverages Google Gemini (`gemini-3.7-flash` / `gemini-2.5-flash`) to visually analyze page screenshots alongside structured DOM interactive element snapshots to decide optimal next actions.
+- ** Hybrid Dual Engine**: Features a smart fallback heuristic decision engine that allows reliable offline operation and deterministic execution even without an active API key.
+- ** Black-Box Browser Automation**: Built on Playwright to execute out-of-band mouse clicks, text typing, keyboard interaction, scrolling, and navigation without modifying or invading target codebase source code.
+- ** Automated Accessibility (A11y) Audit**: Real-time detection of unlabeled buttons, missing input labels, icon-only controls, and keyboard accessibility flaws during navigation.
+- ** Quantitative UX Friction Scoring**: Transparent heuristic model evaluating user effort (0–100 score) penalizing excess steps, action failures, repeated clicks, cyclic navigation loops, and backtracks.
+- ** Standalone Executive HTML Reports**: Renders self-contained dark-mode audit reports complete with step-by-step reasoning timelines, screenshot thumbnails, severity ratings, and actionable UI recommendations.
+- ** Live Interactive Dashboard**: Web UI for monitoring real-time agent perception feeds, action logs, screenshot previews, intent templates, and run history.
+- ** Built-in Demo E-Commerce Store**: Includes an integrated mock store (`/demo`) for instant out-of-the-box testing and verification.
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```mermaid
 flowchart TD
@@ -44,7 +44,7 @@ flowchart TD
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 Autonomous-UI-UX-Testing-Agent/
